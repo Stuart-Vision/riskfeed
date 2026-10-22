@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build and test (JUnit, H2)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - run: mvn -B verify
+      - uses: actions/upload-artifact@v4
+        with:
+          name: riskfeed-jar
+          path: target/riskfeed-1.0.0.jar
+
+  sqlserver:
+    name: End to end on SQL Server 2022
+    needs: build
+    runs-on: ubuntu-latest
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          MSSQL_SA_PASSWORD: RiskFeed_Pass123
+        ports: ["1433:1433"]
+    env:
+      SPRING_PROFILES_ACTIVE: sqlserver
+      DB_USER: sa
+      DB_PASSWORD: RiskFeed_Pass123
+      DB_TRUST_CERT: "true"
+      RISKFEED_JAR: riskfeed-1.0.0.jar
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: actions/download-artifact@v4
+        with:
+          name: riskfeed-jar
+      - name: Wait for SQL Server and create the database
+        run: |
+          sql() { docker exec ${{ job.services.sqlserver.id }} /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$DB_PASSWORD" -C -b "$@"; }
+          for i in $(seq 1 30); do sql -Q "SELECT 1" > /dev/null 2>&1 && break; sleep 3; done
+          sql -Q "CREATE DATABASE riskfeed"
+      - name: Import the CSV sample (expect exit code 3, loaded with rejections)
+        run: |
+          set +e; bin/import-positions.sh samples/positions-2026-10-21.csv; code=$?; set -e
+          test "$code" -eq 3
+      - name: Import it again (expect exit code 2, already imported)
+        run: |
+          set +e; bin/import-positions.sh samples/positions-2026-10-21.csv; code=$?; set -e
+          test "$code" -eq 2
+      - name: Import the XML sample (expect exit code 3)
+        run: |
+          set +e; bin/import-positions.sh samples/positions-2026-10-22.xml; code=$?; set -e
+          test "$code" -eq 3
+      - name: Check the stored procedure's exposure report
+        run: |
+          out=$(docker exec ${{ job.services.sqlserver.id }} /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$DB_PASSWORD" -C -b -d riskfeed -W \
+            -Q "EXEC dbo.usp_counterparty_exposure @AsOfDate = '2026-10-21'")
+          echo "$out"
+          echo "$out" | grep -q "213800QWERTYUIOP1289 2 3986250.75 3986250.75"
+          echo "$out" | grep -q "5493001KJTIIGC8Y1R12 2 49325.00 135925.00"

@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: riskfeed
+  datasource:
+    # Local default: H2 in SQL Server compatibility mode, stored in ./data.
+    # Run with --spring.profiles.active=sqlserver for SQL Server.
+    url: jdbc:h2:file:./data/riskfeed;MODE=MSSQLServer
+    username: sa
+    password: ""
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate   # Flyway owns the schema; Hibernate only checks the mapping matches
+  flyway:
+    locations: classpath:db/migration/{vendor}
+  batch:
+    job:
+      enabled: false       # jobs run on request (API or --import), not at start-up
+    jdbc:
+      initialize-schema: always
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+riskfeed:
+  inbox: ./inbox
+  chunk-size: 500
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

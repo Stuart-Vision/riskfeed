@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<positions source="LOANS-SYSTEM" generated="2026-10-22T18:30:00+08:00">
+  <position>
+    <tradeId>LN-4101</tradeId><book>LENDING</book><counterpartyLei>969500ZXCVBNMASDFG86</counterpartyLei>
+    <product>LOAN</product><currency>SGD</currency><notional>12000000.00</notional>
+    <marketValue>11950000.00</marketValue><asOfDate>2026-10-22</asOfDate>
+  </position>
+  <position>
+    <tradeId>LN-4102</tradeId><book>LENDING</book><counterpartyLei>549300A1B2C3D4E5F690</counterpartyLei>
+    <product>LOAN</product><currency>USD</currency><notional>8000000.00</notional>
+    <marketValue>7990000.00</marketValue><asOfDate>2026-10-22</asOfDate>
+  </position>
+  <position>
+    <tradeId>LN-4103</tradeId><book>LENDING</book><counterpartyLei>969500ZXCVBNMASDFG86</counterpartyLei>
+    <product>LOAN</product><currency>EUR</currency><notional>3000000.00</notional>
+    <marketValue>2999000.00</marketValue><asOfDate>2026-10-22</asOfDate>
+  </position>
+  <position>
+    <tradeId>LN-4104</tradeId><book>LENDING</book><counterpartyLei>969500ZXCVBNMASDFG86</counterpartyLei>
+    <product>LOAN</product><currency>SGD</currency><notional>0</notional>
+    <marketValue>0</marketValue><asOfDate>2026-10-22</asOfDate>
+  </position>
+</positions>

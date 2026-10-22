@@ -1,0 +1,24 @@
+# GitLab CI pipeline (equivalent of the GitHub Actions build job).
+image: maven:3.9-eclipse-temurin-21
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+
+cache:
+  paths: [.m2/repository]
+
+stages: [test, package]
+
+test:
+  stage: test
+  script: mvn -B test
+  artifacts:
+    when: always
+    reports:
+      junit: target/surefire-reports/*.xml
+
+package:
+  stage: package
+  script: mvn -B package -DskipTests
+  artifacts:
+    paths: [target/riskfeed-*.jar]
